@@ -1,0 +1,125 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model cakes {
+  id          Int           @id @default(autoincrement())
+  cake_name   String        @default("")
+  cake_price  Float         @default(0) @db.Double
+  cake_image  String        @default("")
+  best_before DateTime      @default(now())
+  cake_flavor String        @default("")
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @default(now())
+  composition composition[]
+}
+
+model composition {
+  id          Int        @id @default(autoincrement())
+  cakes_id    Int        @default(0)
+  material_id Int        @default(0)
+  qty         Int        @default(0)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @default(now())
+  cakes       cakes?     @relation(fields: [cakesId], references: [id])
+  cakesId     Int?
+  materials   materials? @relation(fields: [materialsId], references: [id])
+  materialsId Int?
+}
+
+model materials {
+  id             Int           @id @default(autoincrement())
+  material_name  String        @default("")
+  material_price Float         @default(0) @db.Double
+  material_type  materialtype
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @default(now())
+  composition    composition[]
+}
+
+model suppliers {
+  id              Int      @id @default(autoincrement())
+  suppliers_name   String   @default("")
+  suppliers_addres String   @default("")
+  suppliers_phone  String   @default("")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @default(now())
+  supply          supply[]
+}
+
+model supply {
+  id               Int                @id @default(autoincrement())
+  supply_date      DateTime           @default(now())
+  suppliers_id     Int                @default(0)
+  user_id          Int                @default(0)
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @default(now())
+  suppliers        suppliers?         @relation(fields: [suppliersId], references: [id])
+  suppliersId      Int?
+  detail_suppliers detail_suppliers[]
+  users            users?             @relation(fields: [usersId], references: [id])
+  usersId          Int?
+}
+
+model detail_suppliers {
+  id             Int      @id @default(autoincrement())
+  supply_id      Int      @default(0)
+  material_id    Int      @default(0)
+  material_price Float    @default(0) @db.Double
+  qty            Int      @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @default(now())
+  supply         supply?  @relation(fields: [supplyId], references: [id])
+  supplyId       Int?
+}
+
+model orders {
+  id         Int        @id @default(autoincrement())
+  order_date DateTime   @default(now())
+  user_id    Int        @default(0)
+  status     statustype
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @default(now())
+  users      users?     @relation(fields: [usersId], references: [id])
+  usersId    Int?
+}
+
+model users {
+  id            Int      @id @default(autoincrement())
+  user_name     String   @default("")
+  user_email    String   @unique @default("")
+  user_password String   @default("")
+  user_role     UserType
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @default(now()) @updatedAt
+  orders        orders[]
+  supply        supply[]
+}
+
+enum materialtype {
+  //pilihan
+  powder
+  liquid
+  solid
+}
+
+enum UserType {
+  Admin
+  Cashier
+}
+
+enum statustype {
+  process
+  deliverer
+}
